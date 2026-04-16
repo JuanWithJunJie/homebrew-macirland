@@ -2,20 +2,27 @@ class Macirland < Formula
   desc "macOS AI CLI session observer with Dynamic Island support"
   homepage "https://github.com/JuanWithJunJie/ai-dynamic-island"
   version "0.1.0"
+  url "https://github.com/JuanWithJunJie/ai-dynamic-island/releases/download/v0.1.0/MacIrland-v0.1.0-macos.zip"
+  sha256 "0a8e844dd2d8340cbbf2f6493e753d017ae3ccd6edc4e1e87898510ebb9f677b"
   license "MIT"
 
   def install
-    # Download the zip from GitHub releases
-    zip_url = "https://github.com/JuanWithJunJie/ai-dynamic-island/releases/download/v0.1.0/MacIrland-v0.1.0-macos.zip"
+    # Download the zip from GitHub releases to a known location
+    zip_path = HOMEBREW_CACHE/"MacIrland-v#{version}-macos.zip"
     ohai "Downloading MacIrland v#{version}..."
-    system "curl", "-L", "-o", "MacIrland-v#{version}-macos.zip", zip_url
+    system "curl", "-L", "-o", zip_path.to_s, "https://github.com/JuanWithJunJie/ai-dynamic-island/releases/download/v#{version}/MacIrland-v#{version}-macos.zip"
 
-    # Extract the app bundle
-    system "unzip", "-o", "MacIrland-v#{version}-macos.zip"
+    # Extract the app bundle to a staging directory
+    staging_dir = HOMEBREW_PREFIX/"var/tmp/macirland-staging"
+    system "rm", "-rf", staging_dir.to_s
+    system "mkdir", "-p", staging_dir.to_s
+    system "unzip", "-o", zip_path.to_s, "-d", staging_dir.to_s
 
-    # Move app to /Applications
+    # Move app to /Applications (remove existing first)
     ohai "Installing MacIrland.app to /Applications..."
-    system "mv", "MacIrland.app", "/Applications/MacIrland.app"
+    system "rm", "-rf", "/Applications/MacIrland.app"
+    system "mv", "#{staging_dir}/MacIrland.app", "/Applications/MacIrland.app"
+    system "rm", "-rf", staging_dir.to_s
   end
 
   def post_install
