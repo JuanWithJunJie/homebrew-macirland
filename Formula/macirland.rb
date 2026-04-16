@@ -1,3 +1,13 @@
+# MacIrland Homebrew Installation
+#
+# NOTE: Due to Homebrew sandbox restrictions, GUI applications are better
+# distributed via direct download.
+#
+# For MacIrland, please use direct download:
+# https://github.com/JuanWithJunJie/ai-dynamic-island/releases/latest
+#
+# This formula provides a CLI wrapper that downloads and launches the app.
+
 class Macirland < Formula
   desc "macOS AI CLI session observer with Dynamic Island support"
   homepage "https://github.com/JuanWithJunJie/ai-dynamic-island"
@@ -7,53 +17,47 @@ class Macirland < Formula
   license "MIT"
 
   def install
-    # Download the zip from GitHub releases to a known location
-    zip_path = HOMEBREW_CACHE/"MacIrland-v#{version}-macos.zip"
-    ohai "Downloading MacIrland v#{version}..."
-    system "curl", "-L", "-o", zip_path.to_s, "https://github.com/JuanWithJunJie/ai-dynamic-island/releases/download/v#{version}/MacIrland-v#{version}-macos.zip"
+    # Create a launcher script that downloads and opens the app
+    # Use Ruby's File API to avoid sandbox issues with system commands
+    wrapper_path = "#{prefix}/bin/macirland"
 
-    # Extract the app bundle to a staging directory
-    staging_dir = HOMEBREW_PREFIX/"var/tmp/macirland-staging"
-    system "rm", "-rf", staging_dir.to_s
-    system "mkdir", "-p", staging_dir.to_s
-    system "unzip", "-o", zip_path.to_s, "-d", staging_dir.to_s
+    # Create bin directory using Ruby (not system command)
+    require 'fileutils'
+    FileUtils.mkdir_p("#{prefix}/bin")
 
-    # Move app to /Applications (remove existing first)
-    ohai "Installing MacIrland.app to /Applications..."
-    system "rm", "-rf", "/Applications/MacIrland.app"
-    system "mv", "#{staging_dir}/MacIrland.app", "/Applications/MacIrland.app"
-    system "rm", "-rf", staging_dir.to_s
-  end
+    # Write wrapper script
+    File.write(wrapper_path, <<~EOS)
+      #!/bin/bash
+      set -e
 
-  def post_install
-    # Install Claude Code hook
-    hook_dir = HOMEBREW_PREFIX/".claude/hooks"
-    hook_script = hook_dir/"macirland.py"
+      VERSION="#{version}"
+      CACHE_DIR="$HOME/Library/Caches/MacIrland"
+      APP_PATH="$CACHE_DIR/MacIrland.app"
+      ZIP_PATH="$CACHE_DIR/MacIrland-v${VERSION}-macos.zip"
+      DOWNLOAD_URL="https://github.com/JuanWithJunJie/ai-dynamic-island/releases/download/v${VERSION}/MacIrland-v${VERSION}-macos.zip"
 
-    unless hook_script.exist?
-      ohai "Installing Claude Code hook..."
-      hook_dir.mkpath unless hook_dir.exist?
-      app_hook = "/Applications/MacIrland.app/Contents/Resources/Scripts/macirland-hook.py"
-      if File.exist?(app_hook)
-        FileUtils.cp(app_hook, hook_script)
-        chmod 0755, hook_script
-      end
-    end
+      mkdir -p "$CACHE_DIR"
+
+      if [ ! -d "$APP_PATH" ]; then
+        echo "Downloading MacIrland v${VERSION}..."
+        curl -L -o "$ZIP_PATH" "$DOWNLOAD_URL"
+        unzip -o "$ZIP_PATH" -d "$CACHE_DIR"
+      fi
+
+      open "$APP_PATH"
+    EOS
+    chmod 0755, wrapper_path
   end
 
   def caveats
     <<~EOS
-      MacIrland has been installed to /Applications.
+      MacIrland CLI launcher installed!
 
-      To enable Claude Code integration:
-      1. Restart Claude Code
-      2. The hook should be installed automatically
+      Run 'macirland' to download (if needed) and launch the app.
 
-      If the hook is not working, run:
-        bash /Applications/MacIrland.app/Contents/Resources/Scripts/install-hooks.sh
-
-      You may need to grant Automation permissions in:
-        System Settings > Privacy & Security > Automation > MacIrland
+      For full menu bar integration, download from:
+      https://github.com/JuanWithJunJie/ai-dynamic-island/releases/latest
+      Then move MacIrland.app to /Applications
     EOS
   end
 end

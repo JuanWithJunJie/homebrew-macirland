@@ -1,44 +1,44 @@
-# MacIrland Homebrew Formula
+# MacIrland Homebrew
 
-Install MacIrland via [Homebrew](https://brew.sh/):
+**Note:** Due to Homebrew sandbox restrictions, GUI applications are better distributed via direct download.
+
+## Installation
+
+### Direct Download (Recommended)
+
+1. Download the latest release from:
+   https://github.com/JuanWithJunJie/ai-dynamic-island/releases/latest
+
+2. Unzip and move `MacIrland.app` to `/Applications`
+
+### Homebrew (CLI only, limited)
+
+For command-line access only:
 
 ```bash
 brew install JuanWithJunJie/macirland/macirland
 ```
 
-Or tap first:
+This installs the app to `$(brew --prefix)/share/MacIrland.app` and creates a `macirland` command that launches the app.
+
+For full menu bar integration, manually move the app:
+```bash
+mv $(brew --prefix)/share/MacIrland.app /Applications/
+```
+
+## Uninstall
 
 ```bash
-brew tap JuanWithJunJie/macirland
-brew install macirland
+brew uninstall macirland
+rm -rf $(brew --prefix)/share/MacIrland.app
+rm -rf ~/.claude/hooks/macirland.py
 ```
 
 ## What is MacIrland?
 
 MacIrland is a macOS AI CLI session observer that displays Claude Code status in a Dynamic Island-style interface at the top of your screen.
 
-## Features
-
-- Real-time Claude Code session status (running, waiting, completed)
-- Multi-session management with Terminal/iTerm2 jump
-- 8-bit chiptune sound notifications
-- Hover expand with session details
-
 ## Requirements
 
 - macOS 14+
-- Claude Code hook installed (done automatically on first install)
-
-## Usage
-
-After installation:
-1. Open MacIrland from `/Applications`
-2. Grant Automation permissions in System Settings
-3. Restart Claude Code
-
-## Uninstall
-
-```bash
-brew uninstall macirland
-rm -rf ~/.claude/hooks/macirland.py
-```
+- Claude Code hook installed
